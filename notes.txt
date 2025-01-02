@@ -1,0 +1,25 @@
+Generate simple C++ program, where the project is in Visual Studio, version C17, graphical user interface (SFML-2.5). The program represent rectangular field populated by 3 independent life forms - grass, cows and predators. Grass, cows and predators are served in the code as 3 independent threads (multi threading). The animals shouldnt go outside the field. Number of cows and predators are defined with constants.
+1. Grass - grows at a certain speed and is eaten by cows. The growth rate is represented by how saturated the green color is - taller grass is expressed by a more saturated green.
+2. Cows - red dots. The number of cows is set with a constant at the beginning of the program. Cows graze grass to gain energy (more energy is expressed by a more saturated red color), they spend energy to live, they spend energy to move. When energy reaches a certain level they reproduce - one cow is divided into 2 cows with half the energy for each. If cow's energy reach 0 - cow dies and cow object is removed from the vector. Cows' priorities in life are as follows - they run away from predators if there is one too close, eat if their energy is low and reproduce if their energy is enough.
+3. Predators - grey dots. The color is from light to dark gray depending on their energy, they feed on cows. Their energy decey with time and movement, they reproduce if have enough energy and die if energy is 0. When die - remove the predator object from vector. Predators' priorities in life are as follows - eat if their energy is low and reproduce if their energy is enough. They search for caws according to grass level - lower grass means more possible that in that direction to present a caw.
+
+The above requarement is added in the begining of the source code - please correct grammar and spell errors.
+All c++ classes and "main()" are in separated files. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
