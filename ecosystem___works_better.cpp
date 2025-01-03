@@ -18,8 +18,11 @@ It simulates interactions between three independent life forms: grass, cows, and
      c) Reproduce when energy is sufficient.
 
 3. Predators:
-   - Behave similarly to cows but feed on cows instead of grass.
-   - Their energy level is visually indicated by shades of gray, from light to dark, depending on energy.
+   - Represented as grey dots.
+   - The initial number of predators is defined by a constant at the start of the program.
+   - Predators gain energy by eating cows. Their energy level is visually indicated by shades of gray, from light to dark, depending on energy.
+   - Energy is spent for survival, movement, and reproduction.
+   - When a predator’s energy reaches a certain threshold, it reproduces, splitting into two predators, each with half the energy.
 
 Multithreading:
 - Grass, cows, and predators are managed as three independent threads to simulate their interactions concurrently.
@@ -38,7 +41,7 @@ const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const int GRID_SIZE = 20;
 const int NUM_COWS = 10;
-const int NUM_PREDATORS = 0;
+const int NUM_PREDATORS = 2;
 
 std::mutex grass_mutex;
 std::mutex cow_mutex;
