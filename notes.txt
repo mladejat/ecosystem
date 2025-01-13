@@ -10,6 +10,32 @@ All c++ classes and "main()" are in separated files.
 
 
 
+void thread2_logic() {
+    int new_element = 6;
+    int index = 0;
+
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(150)); // Simulate work
+        
+        {
+            std::lock_guard<std::mutex> lock(vector_mutex);
+            
+            // Check if the index is still valid
+            if (index >= shared_vector.size()) {
+                break; // Exit if we've processed all elements
+            }
+
+            // Add a new element after every odd number
+            if (shared_vector[index] % 2 != 0) {
+                shared_vector.insert(shared_vector.begin() + index + 1, new_element++);
+                std::cout << "Thread 2 added: " << new_element - 1 << " after " << shared_vector[index] << std::endl;
+                index += 2; // Skip to the element after the added one
+            } else {
+                ++index; // Move to the next element
+            }
+        } // Mutex lock is released here
+    }
+}
 
 
 

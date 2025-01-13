@@ -19,7 +19,7 @@ It is better to use "for" cycles in following form - "for(int i = 0; i < vect.si
 2. Cows:
    - Represented as a red dots.
    - The initial number of cows is defined by a constant at the start of the program.
-   - Cows gain energy(life) by grazing on grass. 
+   - Cows gain energy(life) by grazing on grass.
    - Their energy level is indicated by the saturation of the red color.
    - Energy is spent by time, by movement and by reproduction.
    - When a cow’s energy(life) reaches 0, the cow dies and the object is removed from the vector.
@@ -33,15 +33,13 @@ It is better to use "for" cycles in following form - "for(int i = 0; i < vect.si
 3. Predators:
    - Represented as a gray dots.
    - The initial number of predators is defined by a constant at the start of the program.
-   - Predators gain energy by eating cows. 
+   - Predators gain energy by eating cows.
    - Their energy(life) level is visually indicated by shades of gray, from light to dark, depending on energy.
    - Energy is spent by time, by movement and by reproduction.
    - When a predators’s energy(life) reaches 0, the predator dies and the object is removed from the vector.
    - When a predator’s energy reaches a certain threshold, it reproduces by splitting into two predators, each with the half of the energy.
    - Newly appeared object after reproduction is added to the vector.
    - When energy is low predators search for cows by detecting if nearby grass is eaten by the cow.
-
-
 
 */
 
@@ -53,90 +51,45 @@ It is better to use "for" cycles in following form - "for(int i = 0; i < vect.si
 #include <chrono>
 #include <cmath>
 #include <iostream>
-
-// Constants
-constexpr int WINDOW_WIDTH = 800;
-constexpr int WINDOW_HEIGHT = 600;
-constexpr int CELL_SIZE = 20;
-constexpr int GRID_WIDTH = WINDOW_WIDTH / CELL_SIZE;
-constexpr int GRID_HEIGHT = WINDOW_HEIGHT / CELL_SIZE;
-constexpr int INITIAL_COWS = 10;
-constexpr int INITIAL_PREDATORS = 5;
-constexpr float GRASS_GROWTH_RATE = 0.005f;
-constexpr float COW_ENERGY_THRESHOLD = 1.5f;
-constexpr float PREDATOR_ENERGY_THRESHOLD = 2.0f;
-constexpr float COW_VICINITY_RADIUS = 50.0f;
-constexpr float PREDATOR_ENERGY_DECAY = 0.005f;
-constexpr float COW_ENERGY_DECAY = 0.005f;
+#include "settings..h"
+#include "Cow.h"
+#include "Predator.h"
+#include "Utils.h"
 
 std::mutex grass_mutex, cow_mutex, predator_mutex;
 
-// Helper Functions
-float getRandomFloat(float min, float max) {
-  static std::random_device rd;
-  static std::mt19937 gen(rd());
-  std::uniform_real_distribution<float> dis(min, max);
-  return dis(gen);
-}
 
-// Entity Classes
-class Cow {
-public:
-  sf::Vector2f position;
-  float energy;
-
-  Cow(float x, float y) : position(x, y), energy(1.0f) {}
-
-  void move() {
-    position.x += getRandomFloat(-1.0f, 1.0f);
-    position.y += getRandomFloat(-1.0f, 1.0f);
-    energy -= COW_ENERGY_DECAY;
-  }
-
-  void draw(sf::RenderWindow& window) {
-    sf::CircleShape shape(5);
-    shape.setPosition(position);
-    shape.setFillColor(sf::Color(255, 0, 0, static_cast<int>(energy * 255)));
-    window.draw(shape);
-  }
-};
-
-class Predator {
-public:
-  sf::Vector2f position;
-  float energy;
-
-  Predator(float x, float y) : position(x, y), energy(1.0f) {}
-
-  void move() {
-    position.x += getRandomFloat(-1.5f, 1.5f);
-    position.y += getRandomFloat(-1.5f, 1.5f);
-    energy -= PREDATOR_ENERGY_DECAY;
-  }
-
-  void draw(sf::RenderWindow& window) {
-    sf::CircleShape shape(7);
-    shape.setPosition(position);
-    int shade = static_cast<int>(energy * 255);
-    shape.setFillColor(sf::Color(shade, shade, shade));
-    window.draw(shape);
-  }
-};
 
 std::vector<Cow> cows;
 std::vector<Predator> predators;
 float grass[GRID_WIDTH][GRID_HEIGHT] = { 0 };
 
 // Grass Thread
-void grassThread() {
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+void grassThread()
+{
+  for (int x = 0; x < GRID_WIDTH; ++x)
+  {
+    for (int y = 0; y < GRID_HEIGHT; ++y)
+    {
+      grass[x][y] = 0.2f;
+    }
+  }
+  while (true)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
     std::lock_guard<std::mutex> lock(grass_mutex);
-    for (int x = 0; x < GRID_WIDTH; ++x) {
-      for (int y = 0; y < GRID_HEIGHT; ++y) {
-        if (grass[x][y] < 1.0f) {
+    for (int x = 0; x < GRID_WIDTH; ++x)
+    {
+      for (int y = 0; y < GRID_HEIGHT; ++y)
+      {
+        if (grass[x][y] < 1.0f)
+        {
           grass[x][y] += GRASS_GROWTH_RATE;
+        }
+        else
+        {
+          grass[x][y] = 1.0f;
         }
       }
     }
@@ -144,53 +97,74 @@ void grassThread() {
 }
 
 // Cow Thread
-void cowThread() {
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+void cowThread()
+{
+  while (true)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
     std::lock_guard<std::mutex> lock(cow_mutex);
-    for (size_t i = 0; i < cows.size(); ++i) {
+    for (size_t i = 0; i < cows.size(); ++i)
+    {
       cows[i].move();
 
       // Eat grass
       int gridX = static_cast<int>(cows[i].position.x) / CELL_SIZE;
       int gridY = static_cast<int>(cows[i].position.y) / CELL_SIZE;
-      if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
+      if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT)
+      {
         std::lock_guard<std::mutex> grass_lock(grass_mutex);
-        if (grass[gridX][gridY] > 0.2f) {
-          grass[gridX][gridY] -= 0.2f;
-          cows[i].energy += 0.1f;
+        for (int j = 0; j < 5; ++j)
+        {
+          if (grass[gridX][gridY] > 0.2f)
+          {
+            grass[gridX][gridY] -= 0.2f;
+            cows[i].energy += 0.2f;
+            break;
+          }
+          else
+          {
+            cows[i].move();
+          }
         }
       }
 
       // Reproduction
-      if (cows[i].energy >= COW_ENERGY_THRESHOLD) {
+      if (cows[i].energy >= COW_ENERGY_THRESHOLD)
+      {
         cows[i].energy /= 2;
         cows.emplace_back(cows[i].position.x + 5, cows[i].position.y + 5);
       }
 
       // Death
-      if (cows[i].energy <= 0.0f) {
+      if (cows[i].energy <= 0.0f)
+      {
         cows.erase(cows.begin() + i);
         --i;
+        std::cout << "cow day" << std::endl;
       }
     }
   }
 }
 
 // Predator Thread
-void predatorThread() {
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+void predatorThread()
+{
+  while (true)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
     std::lock_guard<std::mutex> lock(predator_mutex);
-    for (size_t i = 0; i < predators.size(); ++i) {
+    for (size_t i = 0; i < predators.size(); ++i)
+    {
       predators[i].move();
 
       // Hunt cows
       std::lock_guard<std::mutex> cow_lock(cow_mutex);
-      for (size_t j = 0; j < cows.size(); ++j) {
-        if (std::hypot(predators[i].position.x - cows[j].position.x, predators[i].position.y - cows[j].position.y) < 10.0f) {
+      for (size_t j = 0; j < cows.size(); ++j)
+      {
+        if (std::hypot(predators[i].position.x - cows[j].position.x, predators[i].position.y - cows[j].position.y) < 10.0f)
+        {
           predators[i].energy += 0.5f;
           cows.erase(cows.begin() + j);
           --j;
@@ -198,13 +172,15 @@ void predatorThread() {
       }
 
       // Reproduction
-      if (predators[i].energy >= PREDATOR_ENERGY_THRESHOLD) {
+      if (predators[i].energy >= PREDATOR_ENERGY_THRESHOLD)
+      {
         predators[i].energy /= 2;
         predators.emplace_back(predators[i].position.x + 5, predators[i].position.y + 5);
       }
 
       // Death
-      if (predators[i].energy <= 0.0f) {
+      if (predators[i].energy <= 0.0f)
+      {
         predators.erase(predators.begin() + i);
         --i;
       }
@@ -212,16 +188,21 @@ void predatorThread() {
   }
 }
 
-int main() {
+int main()
+{
   sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Life Simulation");
 
+  std::cout << "std::thread::hardware_concurrency():" << std::thread::hardware_concurrency() << std::endl;
+
   // Initialize cows and predators
-  for (int i = 0; i < INITIAL_COWS; ++i) {
-    cows.emplace_back(getRandomFloat(0, WINDOW_WIDTH), getRandomFloat(0, WINDOW_HEIGHT));
+  for (int i = 0; i < INITIAL_COWS; ++i)
+  {
+    cows.emplace_back(Utils::getRandomFloat(0, WINDOW_WIDTH), Utils::getRandomFloat(0, WINDOW_HEIGHT));
   }
 
-  for (int i = 0; i < INITIAL_PREDATORS; ++i) {
-    predators.emplace_back(getRandomFloat(0, WINDOW_WIDTH), getRandomFloat(0, WINDOW_HEIGHT));
+  for (int i = 0; i < INITIAL_PREDATORS; ++i)
+  {
+    predators.emplace_back(Utils::getRandomFloat(0, WINDOW_WIDTH), Utils::getRandomFloat(0, WINDOW_HEIGHT));
   }
 
   // Start threads
@@ -229,10 +210,13 @@ int main() {
   std::thread cow_thread(cowThread);
   std::thread predator_thread(predatorThread);
 
-  while (window.isOpen()) {
+  while (window.isOpen())
+  {
     sf::Event event;
-    while (window.pollEvent(event)) {
-      if (event.type == sf::Event::Closed) {
+    while (window.pollEvent(event))
+    {
+      if (event.type == sf::Event::Closed)
+      {
         window.close();
       }
     }
@@ -241,9 +225,12 @@ int main() {
 
     // Draw grass
     grass_mutex.lock();
-    for (int x = 0; x < GRID_WIDTH; ++x) {
-      for (int y = 0; y < GRID_HEIGHT; ++y) {
-        if (grass[x][y] > 0) {
+    for (int x = 0; x < GRID_WIDTH; ++x)
+    {
+      for (int y = 0; y < GRID_HEIGHT; ++y)
+      {
+        if (grass[x][y] > 0)
+        {
           sf::RectangleShape cell(sf::Vector2f(CELL_SIZE, CELL_SIZE));
           cell.setPosition(x * CELL_SIZE, y * CELL_SIZE);
           cell.setFillColor(sf::Color(0, static_cast<int>(grass[x][y] * 255), 0));
@@ -255,14 +242,16 @@ int main() {
 
     // Draw cows
     cow_mutex.lock();
-    for (auto& cow : cows) {
+    for (auto& cow : cows)
+    {
       cow.draw(window);
     }
     cow_mutex.unlock();
 
     // Draw predators
     predator_mutex.lock();
-    for (auto& predator : predators) {
+    for (auto& predator : predators)
+    {
       predator.draw(window);
     }
     predator_mutex.unlock();
