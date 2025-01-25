@@ -63,7 +63,6 @@ std::mutex mtx;// grass_mutex, cow_mutex, predator_mutex;
 
 std::vector<Cow> cows;
 std::vector<Predator> predators;
-float grass[GRID_WIDTH][GRID_HEIGHT] = { 0 };
 GrassCell field[GRID_WIDTH][GRID_HEIGHT];
 
 // Grass Thread
@@ -73,7 +72,6 @@ void grassThread()
   {
     for (uint32_t y = 0; y < GRID_HEIGHT; ++y)
     {
-      grass[x][y] = 0.2f;
       field[x][y] = { x, y, maxLifeLevel };
     }
   }
@@ -87,14 +85,6 @@ void grassThread()
       for (uint32_t y = 0; y < GRID_HEIGHT; ++y)
       {
         field[x][y].growUp();
-        if (grass[x][y] < 1.0f)
-        {
-          grass[x][y] += GRASS_GROWTH_RATE;
-        }
-        else
-        {
-          grass[x][y] = 1.0f;
-        }
       }
     }
   }
@@ -119,11 +109,9 @@ void cowThread()
       {
         for (int j = 0; j < 5; ++j)
         {
-          if (grass[gridX][gridY] > 0.2f)
+          if (field[gridX][gridY].getLifeLevel() > 0.2f)
           {
-            grass[gridX][gridY] -= 0.2f;
-            cows[i].energy += 0.2f;
-            break;
+            cows[i].energy += field[gridX][gridY].eatGrass();
           }
           else
           {
@@ -231,11 +219,11 @@ int main()
     {
       for (int y = 0; y < GRID_HEIGHT; ++y)
       {
-        if (grass[x][y] > 0)
+        if (field[x][y].getLifeLevel() > 0.0f)
         {
           sf::RectangleShape cell(sf::Vector2f(CELL_SIZE, CELL_SIZE));
           cell.setPosition(x * CELL_SIZE, y * CELL_SIZE);
-          cell.setFillColor(sf::Color(0, static_cast<int>(grass[x][y] * 255), 0));
+          cell.setFillColor(sf::Color(0, static_cast<int>(field[x][y].getLifeLevel() * 255), 0));
           window.draw(cell);
         }
       }
