@@ -1,6 +1,6 @@
 #pragma once
 #include <random>
-#include "settings..h"
+#include "settings.h"
 
 class Utils
 {

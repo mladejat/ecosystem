@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <random>
-#include "settings..h"
+#include "settings.h"
 #include "Utils.h"
 
 class Cow

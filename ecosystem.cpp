@@ -51,38 +51,42 @@ It is better to use "for" cycles in following form - "for(int i = 0; i < vect.si
 #include <chrono>
 #include <cmath>
 #include <iostream>
-#include "settings..h"
+#include "settings.h"
+#include "GrassCell.h"
 #include "Cow.h"
 #include "Predator.h"
 #include "Utils.h"
 
-std::mutex grass_mutex, cow_mutex, predator_mutex;
-
+std::mutex mtx;// grass_mutex, cow_mutex, predator_mutex;
+//!!! Use only one shared_mutex and unique_lock(when write or add/delete element) + shared_lock(when only read)
 
 
 std::vector<Cow> cows;
 std::vector<Predator> predators;
 float grass[GRID_WIDTH][GRID_HEIGHT] = { 0 };
+GrassCell field[GRID_WIDTH][GRID_HEIGHT];
 
 // Grass Thread
 void grassThread()
 {
-  for (int x = 0; x < GRID_WIDTH; ++x)
+  for (uint32_t x = 0; x < GRID_WIDTH; ++x)
   {
-    for (int y = 0; y < GRID_HEIGHT; ++y)
+    for (uint32_t y = 0; y < GRID_HEIGHT; ++y)
     {
       grass[x][y] = 0.2f;
+      field[x][y] = { x, y, maxLifeLevel };
     }
   }
   while (true)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-    std::lock_guard<std::mutex> lock(grass_mutex);
-    for (int x = 0; x < GRID_WIDTH; ++x)
+    std::lock_guard<std::mutex> lock(mtx);
+    for (uint32_t x = 0; x < GRID_WIDTH; ++x)
     {
-      for (int y = 0; y < GRID_HEIGHT; ++y)
+      for (uint32_t y = 0; y < GRID_HEIGHT; ++y)
       {
+        field[x][y].growUp();
         if (grass[x][y] < 1.0f)
         {
           grass[x][y] += GRASS_GROWTH_RATE;
@@ -103,7 +107,7 @@ void cowThread()
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-    std::lock_guard<std::mutex> lock(cow_mutex);
+    std::lock_guard<std::mutex> lock(mtx);
     for (size_t i = 0; i < cows.size(); ++i)
     {
       cows[i].move();
@@ -113,7 +117,6 @@ void cowThread()
       int gridY = static_cast<int>(cows[i].position.y) / CELL_SIZE;
       if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT)
       {
-        std::lock_guard<std::mutex> grass_lock(grass_mutex);
         for (int j = 0; j < 5; ++j)
         {
           if (grass[gridX][gridY] > 0.2f)
@@ -154,13 +157,12 @@ void predatorThread()
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-    std::lock_guard<std::mutex> lock(predator_mutex);
+    std::lock_guard<std::mutex> lock(mtx);
     for (size_t i = 0; i < predators.size(); ++i)
     {
       predators[i].move();
 
       // Hunt cows
-      std::lock_guard<std::mutex> cow_lock(cow_mutex);
       for (size_t j = 0; j < cows.size(); ++j)
       {
         if (std::hypot(predators[i].position.x - cows[j].position.x, predators[i].position.y - cows[j].position.y) < 10.0f)
@@ -224,7 +226,7 @@ int main()
     window.clear();
 
     // Draw grass
-    grass_mutex.lock();
+    mtx.lock();
     for (int x = 0; x < GRID_WIDTH; ++x)
     {
       for (int y = 0; y < GRID_HEIGHT; ++y)
@@ -238,23 +240,17 @@ int main()
         }
       }
     }
-    grass_mutex.unlock();
 
-    // Draw cows
-    cow_mutex.lock();
     for (auto& cow : cows)
     {
       cow.draw(window);
     }
-    cow_mutex.unlock();
 
-    // Draw predators
-    predator_mutex.lock();
     for (auto& predator : predators)
     {
       predator.draw(window);
     }
-    predator_mutex.unlock();
+    mtx.unlock();
 
     window.display();
   }

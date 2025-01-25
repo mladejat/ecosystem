@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <random>
-#include "settings..h"
+#include "settings.h"
 #include "Utils.h"
 
 class Predator
@@ -14,8 +14,19 @@ public:
 
   void move()
   {
-    position.x += Utils::getRandomFloat(-1.5f, 1.5f);
-    position.y += Utils::getRandomFloat(-1.5f, 1.5f);
+    static int counter = 0;
+    static float x = 0.0f;
+    static float y = 0.0f;
+
+    if (++counter == 3)
+    {
+      counter = 0;
+      x = Utils::getRandomFloat(-1.0f, 1.0f);
+      y = Utils::getRandomFloat(-1.0f, 1.0f);
+    }
+    position.x += x;
+    position.y += y;
+
     energy -= PREDATOR_ENERGY_DECAY;
   }
 
