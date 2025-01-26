@@ -3,14 +3,16 @@
 #include <random>
 #include "settings.h"
 #include "Utils.h"
+#include "LifeUnit.h"
 
-class Cow
+class Cow : public LifeUnit
 {
 public:
-  sf::Vector2f position;
-  float energy;
+  //sf::Vector2f position;
+  //float energy;
 
-  Cow(float x, float y) : position(x, y), energy(1.0f) {}
+  Cow(float x, float y) : LifeUnit(x, y, 1.0) {}
+  Cow(float x, float y, float lifeLevel) : LifeUnit(x, y, lifeLevel) {}
 
   void move()
   {
@@ -24,17 +26,17 @@ public:
       x = Utils::getRandomFloat(-1.0f, 1.0f);
       y = Utils::getRandomFloat(-1.0f, 1.0f);
     }
-    position.x += x;
-    position.y += y;
+    setX(getX() + x);
+    setY(getY() + y);
 
-    energy -= COW_ENERGY_DECAY;
+    setLifeLevel(getLifeLevel() - COW_ENERGY_DECAY);
   }
 
   void draw(sf::RenderWindow& window)
   {
     sf::CircleShape shape(5);
-    shape.setPosition(position);
-    shape.setFillColor(sf::Color(255, 0, 0, static_cast<int>(energy * 255)));
+    shape.setPosition(getPosition());
+    shape.setFillColor(sf::Color(255, 0, 0, static_cast<int>(getLifeLevel() * 255)));
     window.draw(shape);
   }
 };

@@ -17,9 +17,9 @@ void GrassCell::growUp()
   }
 }
 
-double GrassCell::eatGrass()
+float GrassCell::eatGrass()
 {
-  double ret = getLifeLevel() / 3;
+  float ret = getLifeLevel() / 3;
   setLifeLevel(2 * ret);
   return ret;
 }

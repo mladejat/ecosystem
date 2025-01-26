@@ -3,14 +3,12 @@
 
 // Constants
 
-const uint32_t maxRows = 10;
-const uint32_t maxColumns = 10;
 const uint32_t maxHerbivoreView = 3;
 const uint32_t maxPredatorView = 4;
 const uint32_t maxHerbivoreSpeed = 3;
 const uint32_t maxPredatorSpeed = 2;
-const double minLifeLevel = 0.01;
-const double maxLifeLevel = 10.0;
+const float minLifeLevel = 0.01;
+const float maxLifeLevel = 10.0;
 
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;

@@ -10,12 +10,12 @@ public:
     :LifeUnit(0, 0, 0)
   {
   };
-  GrassCell(uint32_t row, uint32_t column, double lifeLevel)
-    :LifeUnit(row, column, lifeLevel)
+  GrassCell(float x, float y, float lifeLevel)
+    :LifeUnit(x, y, lifeLevel)
   {
   };
 
   void growUp();
-  double eatGrass();
+  float eatGrass();
 };
 

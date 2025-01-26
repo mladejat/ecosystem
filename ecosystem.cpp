@@ -72,7 +72,7 @@ void grassThread()
   {
     for (uint32_t y = 0; y < GRID_HEIGHT; ++y)
     {
-      field[x][y] = { x, y, maxLifeLevel };
+      field[x][y] = { static_cast<float>(x), static_cast<float>(y), maxLifeLevel };
     }
   }
   while (true)
@@ -103,15 +103,15 @@ void cowThread()
       cows[i].move();
 
       // Eat grass
-      int gridX = static_cast<int>(cows[i].position.x) / CELL_SIZE;
-      int gridY = static_cast<int>(cows[i].position.y) / CELL_SIZE;
+      int gridX = static_cast<int>(cows[i].getX()) / CELL_SIZE;
+      int gridY = static_cast<int>(cows[i].getY()) / CELL_SIZE;
       if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT)
       {
         for (int j = 0; j < 5; ++j)
         {
           if (field[gridX][gridY].getLifeLevel() > 0.2f)
           {
-            cows[i].energy += field[gridX][gridY].eatGrass();
+            cows[i].setLifeLevel(cows[i].getLifeLevel() + field[gridX][gridY].eatGrass());
           }
           else
           {
@@ -121,14 +121,14 @@ void cowThread()
       }
 
       // Reproduction
-      if (cows[i].energy >= COW_ENERGY_THRESHOLD)
+      if (cows[i].getLifeLevel() >= COW_ENERGY_THRESHOLD)
       {
-        cows[i].energy /= 2;
-        cows.emplace_back(cows[i].position.x + 5, cows[i].position.y + 5);
+        cows[i].setLifeLevel(cows[i].getLifeLevel() / 2);
+        cows.emplace_back(cows[i].getX() + 5, cows[i].getY() + 5);
       }
 
       // Death
-      if (cows[i].energy <= 0.0f)
+      if (cows[i].getLifeLevel() <= 0.0f)
       {
         cows.erase(cows.begin() + i);
         --i;
@@ -153,7 +153,7 @@ void predatorThread()
       // Hunt cows
       for (size_t j = 0; j < cows.size(); ++j)
       {
-        if (std::hypot(predators[i].position.x - cows[j].position.x, predators[i].position.y - cows[j].position.y) < 10.0f)
+        if (std::hypot(predators[i].position.x - cows[j].getX(), predators[i].position.y - cows[j].getY()) < 10.0f)
         {
           predators[i].energy += 0.5f;
           cows.erase(cows.begin() + j);

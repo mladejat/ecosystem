@@ -1,4 +1,5 @@
 #pragma once
+#include <SFML/Graphics.hpp>
 #include <stdint.h>
 #include <utility>
 #include <vector>
@@ -6,40 +7,40 @@
 class LifeUnit
 {
 private:
-  uint32_t _row;
-  uint32_t _column;
-  double _lifeLevel = 0.0;
+  sf::Vector2f _position;
+  float _lifeLevel = 0.0;
 public:
-  LifeUnit(uint32_t row, uint32_t column, double lifeLevel)
-    : _row{ row }
-    , _column{ column }
+  LifeUnit(float x, float y, float lifeLevel)
+    : _position{x, y}
     , _lifeLevel{ lifeLevel }
   {
 
   }
-  double getLifeLevel() { return _lifeLevel; }
-  uint32_t getRow() const { return _row; }
-  uint32_t getColumn() const { return _column; }
-  std::pair<uint32_t, uint32_t> getPoint() const { return std::pair<uint32_t, uint32_t>(_row, _column); }
-  void setLifeLevel(double val) { _lifeLevel = val; }
-  void setRow(uint32_t row) { _row = row; }
-  void setColumn(uint32_t column) { _column = column; }
+  float getLifeLevel() { return _lifeLevel; }
+  float getX() const { return _position.x; }
+  float getY() const { return _position.y; }
+  sf::Vector2f getPosition() { return _position; }
 
-  template <typename T> std::tuple<uint32_t, uint32_t, uint32_t> findClosest(const std::vector<T>& lifeUnit)
+  void setLifeLevel(float val) { _lifeLevel = val; }
+  void setX(float x) { _position.x = x; }
+  void setY(float y) { _position.y = y; }
+  void setPosition(sf::Vector2f position) { _position = position; }
+
+  template <typename T> std::pair<sf::Vector2f, float> findClosest(const std::vector<T>& lifeUnit)
   {
-    std::pair<uint32_t, uint32_t> closestPoint = lifeUnit[0].getPoint();
-    uint32_t minDistanceSquared = std::numeric_limits<uint32_t>::max();
+    sf::Vector2f closestPoint = lifeUnit[0].getPosition();
+    float minDistanceSquared = std::numeric_limits<float>::max();
 
     for (const auto& unit : lifeUnit) {
       // Calculate squared distance between point (point.first, point.second) and (x, y)
-      uint32_t dx = std::abs(static_cast<int>(unit.getRow()) - static_cast<int>(this->getRow()));
-      uint32_t dy = std::abs(static_cast<int>(unit.getColumn()) - static_cast<int>(this->getColumn()));
-      uint32_t distanceSquared = dx * dx + dy * dy;
+      float dx = std::abs(unit.getX() - this->getX());
+      float dy = std::abs(unit.getY() - this->getY());
+      float distanceSquared = dx * dx + dy * dy;
 
       // If this distance is smaller than the previous minimum, update closest point
       if (distanceSquared < minDistanceSquared) {
         minDistanceSquared = distanceSquared;
-        closestPoint = unit.getPoint();
+        closestPoint = unit.getPosition();
       }
     }
 
