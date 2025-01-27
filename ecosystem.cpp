@@ -153,23 +153,24 @@ void predatorThread()
       // Hunt cows
       for (size_t j = 0; j < cows.size(); ++j)
       {
-        if (std::hypot(predators[i].position.x - cows[j].getX(), predators[i].position.y - cows[j].getY()) < 10.0f)
+        if (std::hypot(predators[i].getX() - cows[j].getX(), predators[i].getY() - cows[j].getY()) < 10.0f)
         {
-          predators[i].energy += 0.5f;
+          
+          predators[i].setLifeLevel(predators[i].getLifeLevel() + 0.5f);
           cows.erase(cows.begin() + j);
           --j;
         }
       }
 
       // Reproduction
-      if (predators[i].energy >= PREDATOR_ENERGY_THRESHOLD)
+      if (predators[i].getLifeLevel() >= PREDATOR_ENERGY_THRESHOLD)
       {
-        predators[i].energy /= 2;
-        predators.emplace_back(predators[i].position.x + 5, predators[i].position.y + 5);
+        predators[i].setLifeLevel(predators[i].getLifeLevel() / 2);
+        predators.emplace_back(predators[i].getX() + 5, predators[i].getY() + 5);
       }
 
       // Death
-      if (predators[i].energy <= 0.0f)
+      if (predators[i].getLifeLevel() <= 0.0f)
       {
         predators.erase(predators.begin() + i);
         --i;
@@ -223,7 +224,7 @@ int main()
         {
           sf::RectangleShape cell(sf::Vector2f(CELL_SIZE, CELL_SIZE));
           cell.setPosition(x * CELL_SIZE, y * CELL_SIZE);
-          cell.setFillColor(sf::Color(0, static_cast<int>(field[x][y].getLifeLevel() * 255), 0));
+          cell.setFillColor(sf::Color(0, static_cast<int>(field[x][y].getLifeLevel() / maxLifeLevel * 255), 0));
           window.draw(cell);
         }
       }

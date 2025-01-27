@@ -3,14 +3,13 @@
 #include <random>
 #include "settings.h"
 #include "Utils.h"
+#include "LifeUnit.h"
 
-class Predator
+class Predator : public LifeUnit
 {
 public:
-  sf::Vector2f position;
-  float energy;
 
-  Predator(float x, float y) : position(x, y), energy(1.0f) {}
+  Predator(float x, float y) : LifeUnit(x, y, maxLifeLevel) {}
 
   void move()
   {
@@ -24,17 +23,17 @@ public:
       x = Utils::getRandomFloat(-1.0f, 1.0f);
       y = Utils::getRandomFloat(-1.0f, 1.0f);
     }
-    position.x += x;
-    position.y += y;
+    setX(getX() + x);
+    setY(getY() + y);
 
-    energy -= PREDATOR_ENERGY_DECAY;
+    setLifeLevel(getLifeLevel() - PREDATOR_ENERGY_DECAY);
   }
 
   void draw(sf::RenderWindow& window)
   {
     sf::CircleShape shape(7);
-    shape.setPosition(position);
-    int shade = static_cast<int>(energy * 255);
+    shape.setPosition(getPosition());
+    int shade = static_cast<int>(getLifeLevel() / maxLifeLevel * 255);
     shape.setFillColor(sf::Color(shade, shade, shade));
     window.draw(shape);
   }

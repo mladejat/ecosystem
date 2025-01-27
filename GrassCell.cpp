@@ -9,7 +9,7 @@ void GrassCell::growUp()
   }
   else
   {
-    setLifeLevel(2 * getLifeLevel());
+    setLifeLevel(1.1 * getLifeLevel());
     if (getLifeLevel() > maxLifeLevel)
     {
       setLifeLevel(maxLifeLevel);

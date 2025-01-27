@@ -36,7 +36,7 @@ public:
   {
     sf::CircleShape shape(5);
     shape.setPosition(getPosition());
-    shape.setFillColor(sf::Color(255, 0, 0, static_cast<int>(getLifeLevel() * 255)));
+    shape.setFillColor(sf::Color(255, 0, 0, static_cast<int>(getLifeLevel() / maxLifeLevel * 255)));
     window.draw(shape);
   }
 };
