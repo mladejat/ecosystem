@@ -72,12 +72,12 @@ void grassThread()
   {
     for (uint32_t y = 0; y < GRID_HEIGHT; ++y)
     {
-      field[x][y] = { static_cast<float>(x), static_cast<float>(y), maxLifeLevel };
+      field[x][y] = { static_cast<float>(x), static_cast<float>(y), LIFE_LEVEL_MAX };
     }
   }
   while (true)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     std::lock_guard<std::mutex> lock(mtx);
     for (uint32_t x = 0; x < GRID_WIDTH; ++x)
@@ -95,44 +95,46 @@ void cowThread()
 {
   while (true)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     std::lock_guard<std::mutex> lock(mtx);
-    for (size_t i = 0; i < cows.size(); ++i)
+
+    auto size = cows.size();
+    std::cout << "cows.size():" << size << "\n";
+    if (size)
     {
-      cows[i].move();
-
-      // Eat grass
-      int gridX = static_cast<int>(cows[i].getX()) / CELL_SIZE;
-      int gridY = static_cast<int>(cows[i].getY()) / CELL_SIZE;
-      if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT)
+      for (size_t i = 0; i < cows.size(); ++i)
       {
-        for (int j = 0; j < 5; ++j)
+        std::cout << "cowThread - cows:" << cows.size() << ", cow:" << i << " - findClosest predator from " << predators.size() << "\n";
+        auto [closestPred, dist] = cows[i].findClosest(predators);
+        if (dist <= COW_MAX_VIEW)
         {
-          if (field[gridX][gridY].getLifeLevel() > 0.2f)
-          {
-            cows[i].setLifeLevel(cows[i].getLifeLevel() + field[gridX][gridY].eatGrass());
-          }
-          else
-          {
-            cows[i].move();
-          }
+          cows[i].moveAway(closestPred);
         }
-      }
+        else
+        {
+          // Eat grass
+          cows[i].moveToward(cows[i].searchHighGrass(field));
+          cows[i].setLifeLevel(cows[i].getLifeLevel() + field[static_cast<int>(cows[i].getX()) / CELL_SIZE][static_cast<int>(cows[i].getY()) / CELL_SIZE].eatGrass());
+        }
 
-      // Reproduction
-      if (cows[i].getLifeLevel() >= COW_ENERGY_THRESHOLD)
-      {
-        cows[i].setLifeLevel(cows[i].getLifeLevel() / 2);
-        cows.emplace_back(cows[i].getX() + 5, cows[i].getY() + 5);
-      }
+        cows[i].setLifeLevel(cows[i].getLifeLevel() - COW_ENERGY_DECAY);
 
-      // Death
-      if (cows[i].getLifeLevel() <= 0.0f)
-      {
-        cows.erase(cows.begin() + i);
-        --i;
-        std::cout << "cow day" << std::endl;
+        // Reproduction
+        if (cows[i].getLifeLevel() >= COW_ENERGY_THRESHOLD)
+        {
+          std::cout << "cow:" << i << " reproduces\n";
+          cows[i].setLifeLevel(cows[i].getLifeLevel() / 2);
+          //cows.emplace_back(cows[i].getX() + Utils::getRandomFloat(-5.0f, 5.0f), cows[i].getY() + Utils::getRandomFloat(-5.0f, 5.0f));
+          cows.insert(cows.begin() + i + 1, { cows[i].getX() + Utils::getRandomFloat(-5.0f, 5.0f), cows[i].getY() + Utils::getRandomFloat(-5.0f, 5.0f) });
+          ++i;
+        }
+        else if (cows[i].getLifeLevel() <= 0.0f) // Death
+        {
+          std::cout << "cow:" << i << " day\n";
+          cows.erase(cows.begin() + i);
+          --i;
+        }
       }
     }
   }
@@ -143,37 +145,48 @@ void predatorThread()
 {
   while (true)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     std::lock_guard<std::mutex> lock(mtx);
-    for (size_t i = 0; i < predators.size(); ++i)
+
+    auto size = predators.size();
+    std::cout << "predators.size():" << size << "\n";
+    if (size)
     {
-      predators[i].move();
-
-      // Hunt cows
-      for (size_t j = 0; j < cows.size(); ++j)
+      for (size_t i = 0; i < predators.size(); ++i)
       {
-        if (std::hypot(predators[i].getX() - cows[j].getX(), predators[i].getY() - cows[j].getY()) < 10.0f)
+        std::cout << "predatorThread - predators:" << predators.size() << ", predator:" << i << "\n";
+
+        auto [closestCaw, dist] = predators[i].findClosest(cows);
+        predators[i].moveToward(closestCaw);
+
+        // Hunt cows
+        for (size_t j = 0; j < cows.size(); ++j)
         {
-          
-          predators[i].setLifeLevel(predators[i].getLifeLevel() + 0.5f);
-          cows.erase(cows.begin() + j);
-          --j;
+          if (std::hypot(predators[i].getX() - cows[j].getX(), predators[i].getY() - cows[j].getY()) < 10.0f)
+          {
+            std::cout << "predator eat cow:" << j << "\n";
+            predators[i].setLifeLevel(predators[i].getLifeLevel() + 0.5f);
+            cows.erase(cows.begin() + j);
+            --j;
+          }
         }
-      }
 
-      // Reproduction
-      if (predators[i].getLifeLevel() >= PREDATOR_ENERGY_THRESHOLD)
-      {
-        predators[i].setLifeLevel(predators[i].getLifeLevel() / 2);
-        predators.emplace_back(predators[i].getX() + 5, predators[i].getY() + 5);
-      }
-
-      // Death
-      if (predators[i].getLifeLevel() <= 0.0f)
-      {
-        predators.erase(predators.begin() + i);
-        --i;
+        // Reproduction
+        if (predators[i].getLifeLevel() >= PREDATOR_ENERGY_THRESHOLD)
+        {
+          std::cout << "predator reproduces\n";
+          predators[i].setLifeLevel(predators[i].getLifeLevel() / 2);
+          //predators.emplace_back(predators[i].getX() + Utils::getRandomFloat(-5.0f, 5.0f), predators[i].getY() + Utils::getRandomFloat(-5.0f, 5.0f));
+          predators.insert(predators.begin() + i + 1, { predators[i].getX() + Utils::getRandomFloat(-5.0f, 5.0f), predators[i].getY() + Utils::getRandomFloat(-5.0f, 5.0f) });
+          ++i;
+        }
+        else if (predators[i].getLifeLevel() <= 0.0f)
+        {
+          std::cout << "predator day\n";
+          predators.erase(predators.begin() + i);
+          --i;
+        }
       }
     }
   }
@@ -212,6 +225,8 @@ int main()
       }
     }
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
     window.clear();
 
     // Draw grass
@@ -224,20 +239,24 @@ int main()
         {
           sf::RectangleShape cell(sf::Vector2f(CELL_SIZE, CELL_SIZE));
           cell.setPosition(x * CELL_SIZE, y * CELL_SIZE);
-          cell.setFillColor(sf::Color(0, static_cast<int>(field[x][y].getLifeLevel() / maxLifeLevel * 255), 0));
+          cell.setFillColor(sf::Color(0, static_cast<int>(field[x][y].getLifeLevel() / LIFE_LEVEL_MAX * 255), 0));
           window.draw(cell);
         }
       }
     }
 
-    for (auto& cow : cows)
+    std::cout << "dddddddddddddddddddddddraw, cows.size():" << cows.size() << "\n";
+    //for (auto& cow : cows)
+    for (size_t i = 0; i < cows.size(); ++i)
     {
-      cow.draw(window);
+      cows[i].draw(window);
     }
-
-    for (auto& predator : predators)
+    
+    std::cout << "dddddddddddddddddddddddraw, predators.size():" << predators.size() << "\n";
+    //for (auto& predator : predators)
+    for (size_t i = 0; i < predators.size(); ++i)
     {
-      predator.draw(window);
+      predators[i].draw(window);
     }
     mtx.unlock();
 

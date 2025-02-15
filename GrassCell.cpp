@@ -3,16 +3,16 @@
 
 void GrassCell::growUp()
 {
-  if (getLifeLevel() < minLifeLevel)
+  if (getLifeLevel() < LIFE_LEVEL_MIN)
   {
-    setLifeLevel(minLifeLevel);
+    setLifeLevel(LIFE_LEVEL_MIN);
   }
   else
   {
-    setLifeLevel(1.1 * getLifeLevel());
-    if (getLifeLevel() > maxLifeLevel)
+    setLifeLevel(1.1f * getLifeLevel());
+    if (getLifeLevel() > LIFE_LEVEL_MAX)
     {
-      setLifeLevel(maxLifeLevel);
+      setLifeLevel(LIFE_LEVEL_MAX);
     }
   }
 }
