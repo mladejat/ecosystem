@@ -7,11 +7,11 @@ class GrassCell : public LifeUnit
 {
 public:
   GrassCell()
-    :LifeUnit(0, 0, 0)
+    :LifeUnit(0, 0, 0, 0)
   {
   };
-  GrassCell(float x, float y, float lifeLevel)
-    :LifeUnit(x, y, lifeLevel)
+  GrassCell(float x, float y, float lifeLevel, float speed)
+    :LifeUnit(x, y, lifeLevel, speed)
   {
   };
 

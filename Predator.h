@@ -9,7 +9,7 @@ class Predator : public LifeUnit
 {
 public:
 
-  Predator(float x, float y) : LifeUnit(x, y, LIFE_LEVEL_MAX) {}
+  Predator(float x, float y) : LifeUnit(x, y, LIFE_LEVEL_START, PREDATOR_MAX_SPEED) {}
 
   void draw(sf::RenderWindow& window)
   {

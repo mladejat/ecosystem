@@ -12,8 +12,8 @@ public:
   //sf::Vector2f position;
   //float energy;
 
-  Cow(float x, float y) : LifeUnit(x, y, 1.0) {}
-  Cow(float x, float y, float lifeLevel) : LifeUnit(x, y, lifeLevel) {}
+  Cow(float x, float y) : LifeUnit(x, y, LIFE_LEVEL_START, COW_MAX_SPEED) {}
+  Cow(float x, float y, float lifeLevel, float speed) : LifeUnit(x, y, lifeLevel, speed) {}
 
   sf::Vector2f searchHighGrass(GrassCell field[GRID_WIDTH][GRID_HEIGHT]);
 

@@ -10,10 +10,12 @@ class LifeUnit
 private:
   sf::Vector2f _position;
   float _lifeLevel = 0.0;
+  float _speed = 0.0;
 public:
-  LifeUnit(float x, float y, float lifeLevel)
-    : _position{x, y}
+  LifeUnit(float x, float y, float lifeLevel, float speed)
+    : _position{ x, y }
     , _lifeLevel{ lifeLevel }
+    , _speed{ speed }
   {
 
   }
@@ -30,17 +32,16 @@ public:
 #define moveToward(x) move(x, true)
 #define moveAway(x) move(x, false)
 
-  template <typename T> 
+  template <typename T>
   std::pair<sf::Vector2f, float> findClosest(const std::vector<T>& lifeUnit)
   {
     auto size = lifeUnit.size();
     std::cout << "lifeUnit.size():" << size << ", addr:" << &lifeUnit << "\n";
-    if (size && (size < 1000000))
+    if (size)
     {
       auto closestPoint = lifeUnit[0].getPosition();
       float minDistanceSquared = std::numeric_limits<float>::max();
       {
-        //for (const auto& unit : lifeUnit)
         for (int i = 0; i < lifeUnit.size(); ++i)
         {
           // Calculate squared distance between point (point.first, point.second) and (x, y)
@@ -54,18 +55,6 @@ public:
             minDistanceSquared = distanceSquared;
             closestPoint = lifeUnit[i].getPosition();
           }
-          //// Calculate squared distance between point (point.first, point.second) and (x, y)
-          //float dx = std::abs(unit.getX() - this->getX());
-          //float dy = std::abs(unit.getY() - this->getY());
-          //float distanceSquared = dx * dx + dy * dy;
-
-          //// If this distance is smaller than the previous minimum, update closest point
-          //if (distanceSquared < minDistanceSquared)
-          //{
-          //  minDistanceSquared = distanceSquared;
-          //  closestPoint = unit.getPosition();
-          //}
-
         }
       }
       return { closestPoint, std::sqrt(minDistanceSquared) };

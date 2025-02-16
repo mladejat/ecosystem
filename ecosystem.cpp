@@ -72,7 +72,7 @@ void grassThread()
   {
     for (uint32_t y = 0; y < GRID_HEIGHT; ++y)
     {
-      field[x][y] = { static_cast<float>(x), static_cast<float>(y), LIFE_LEVEL_MAX };
+      field[x][y] = { static_cast<float>(x), static_cast<float>(y), LIFE_LEVEL_START , 0.0};
     }
   }
   while (true)
