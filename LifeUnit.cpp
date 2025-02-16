@@ -12,36 +12,36 @@ void LifeUnit::move(sf::Vector2f refPoint, bool direction)
 
   if ((x < refX) && direction) // toward
   {
-    x += _lifeLevel;
+    x += _lifeLevel;//_speed;;
   }
   else if ((x > refX) && direction) // toward
   {
-    x -= _lifeLevel;
+    x -= _lifeLevel;//_speed;;
   }
   else if ((x < refX) && !direction) // away
   {
-    x -= _lifeLevel;
+    x -= _lifeLevel;//_speed;;
   }
   else if ((x > refX) && !direction) // away
   {
-    x += _lifeLevel;
+    x += _lifeLevel;//_speed;;
   }
 
   if ((y < refY) && direction) // toward
   {
-    y += _lifeLevel;
+    y += _lifeLevel;//_speed;;
   }
   else if ((y > refY) && direction) // toward
   {
-    y -= _lifeLevel;
+    y -= _lifeLevel;//_speed;;
   }
   else if ((y < refY) && !direction) // away
   {
-    y -= _lifeLevel;
+    y -= _lifeLevel;//_speed;;
   }
   else if ((y > refY) && !direction) // away
   {
-    y += _lifeLevel;
+    y += _lifeLevel;//_speed;;
   }
 
   if (x < 0.0f) x = 0.0f;
